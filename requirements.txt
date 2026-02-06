@@ -1,0 +1,8 @@
+# Telegram 客户端库（基于 MTProto 协议）
+telethon==1.36.0
+
+# 异步 HTTP 请求库（用于 Webhook 转发，避免阻塞事件循环）
+aiohttp==3.9.1
+
+# 时区处理库
+pytz==2024.1
