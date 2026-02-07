@@ -7,8 +7,8 @@ Telegram 私密群组消息转发器 - GitHub Actions 优化版
 2. 仅在北京时间 09:00-24:00 运行
 3. 支持历史消息补发和实时监听
 4. 自动保存最后处理的消息 ID
-5. 50 分钟超时自动退出
-6. 转发至飞书/企业微信 Webhook
+5. 轻量级轮询模式，每 10 分钟执行一次
+6. 转发至钉钉/飞书/企业微信 Webhook（自动识别）
 """
 
 import os
@@ -124,9 +124,32 @@ def save_last_message_id(message_id: int) -> None:
 
 
 # ==================== Webhook 转发 ====================
+def detect_webhook_type(url: str) -> str:
+    """
+    根据 Webhook URL 自动检测平台类型
+    
+    Args:
+        url: Webhook URL
+        
+    Returns:
+        str: 'dingtalk', 'feishu', 'wecom' 之一
+    """
+    url_lower = url.lower()
+    if 'dingtalk.com' in url_lower or 'oapi.dingtalk.com' in url_lower:
+        return 'dingtalk'
+    elif 'feishu.cn' in url_lower or 'open.feishu.cn' in url_lower:
+        return 'feishu'
+    elif 'qyapi.weixin.qq.com' in url_lower or 'weixin.qq.com' in url_lower:
+        return 'wecom'
+    else:
+        # 默认使用钉钉格式（最通用）
+        return 'dingtalk'
+
+
 async def send_to_webhook(sender_name: str, send_time: str, message_text: str) -> bool:
     """
-    将消息转发至飞书/企业微信 Webhook（异步版本）
+    将消息转发至钉钉/飞书/企业微信 Webhook（异步版本）
+    自动根据 URL 识别平台类型
     
     Args:
         sender_name: 发送者名称
@@ -136,37 +159,70 @@ async def send_to_webhook(sender_name: str, send_time: str, message_text: str) -
     Returns:
         bool: 发送成功返回 True，否则返回 False
     """
-    # 构建飞书/企业微信的 post 格式消息
-    payload = {
-        "msg_type": "post",
-        "content": {
-            "post": {
-                "zh_CN": {
-                    "title": "🔔 TG 工业群组监控告警",
-                    "content": [
-                        [
-                            {
-                                "tag": "text",
-                                "text": f"【发送者】{sender_name}\n"
-                            }
-                        ],
-                        [
-                            {
-                                "tag": "text",
-                                "text": f"【时间】{send_time}\n"
-                            }
-                        ],
-                        [
-                            {
-                                "tag": "text",
-                                "text": f"【内容】\n{message_text}"
-                            }
+    # 检测 Webhook 类型
+    webhook_type = detect_webhook_type(Config.WEBHOOK_URL)
+    
+    # 根据不同平台构建消息格式
+    if webhook_type == 'dingtalk':
+        # 钉钉机器人 - Markdown 格式
+        payload = {
+            "msgtype": "markdown",
+            "markdown": {
+                "title": "🔔 TG 群组监控告警",
+                "text": f"### 🔔 TG 群组监控告警\n\n"
+                        f"**发送者：** {sender_name}\n\n"
+                        f"**时间：** {send_time}\n\n"
+                        f"**内容：**\n\n{message_text}"
+            }
+        }
+        print(f"📤 使用钉钉格式发送消息")
+        
+    elif webhook_type == 'feishu':
+        # 飞书机器人 - Post 格式
+        payload = {
+            "msg_type": "post",
+            "content": {
+                "post": {
+                    "zh_CN": {
+                        "title": "🔔 TG 群组监控告警",
+                        "content": [
+                            [
+                                {
+                                    "tag": "text",
+                                    "text": f"【发送者】{sender_name}\n"
+                                }
+                            ],
+                            [
+                                {
+                                    "tag": "text",
+                                    "text": f"【时间】{send_time}\n"
+                                }
+                            ],
+                            [
+                                {
+                                    "tag": "text",
+                                    "text": f"【内容】\n{message_text}"
+                                }
+                            ]
                         ]
-                    ]
+                    }
                 }
             }
         }
-    }
+        print(f"📤 使用飞书格式发送消息")
+        
+    else:  # wecom
+        # 企业微信机器人 - Markdown 格式
+        payload = {
+            "msgtype": "markdown",
+            "markdown": {
+                "content": f"### 🔔 TG 群组监控告警\n"
+                          f"**发送者：** {sender_name}\n"
+                          f"**时间：** {send_time}\n"
+                          f"**内容：**\n{message_text}"
+            }
+        }
+        print(f"📤 使用企业微信格式发送消息")
     
     try:
         # 使用 aiohttp 进行异步 HTTP 请求，避免阻塞事件循环
@@ -179,7 +235,7 @@ async def send_to_webhook(sender_name: str, send_time: str, message_text: str) -
                 response_text = await response.text()
                 
                 if response.status == 200:
-                    print(f"✅ 消息已转发至 Webhook")
+                    print(f"✅ 消息已转发至 {webhook_type.upper()} Webhook")
                     return True
                 else:
                     print(f"⚠️ Webhook 返回错误状态码: {response.status}")

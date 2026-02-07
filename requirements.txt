@@ -6,3 +6,6 @@ aiohttp==3.9.1
 
 # 时区处理库
 pytz==2024.1
+
+# SOCKS 代理支持（用于 gen_session.py 在中国大陆生成 StringSession）
+python-socks[asyncio]==2.4.3

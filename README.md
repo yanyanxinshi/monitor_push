@@ -75,6 +75,16 @@ python gen_session.py
 
 ### 4. 获取 Webhook URL
 
+系统支持三种机器人平台，会**自动识别**并使用对应的消息格式：
+
+#### 钉钉机器人（推荐）
+
+1. 在钉钉群组中点击右上角 `···` > `群设置` > `智能群助手`
+2. 点击 `添加机器人` > `自定义`
+3. 设置机器人名称（如"TG 监控"）
+4. **安全设置**：选择"自定义关键词"，输入：`TG` 或 `监控`
+5. 复制 Webhook URL（格式：`https://oapi.dingtalk.com/robot/send?access_token=...`）
+
 #### 飞书机器人
 
 1. 在飞书群组中添加自定义机器人
@@ -84,6 +94,8 @@ python gen_session.py
 
 1. 在企业微信群组中添加群机器人
 2. 获取 Webhook URL（格式：`https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=...`）
+
+**注意**：脚本会根据 URL 自动识别平台类型并使用对应的消息格式，无需额外配置。
 
 ## 🚀 部署到 GitHub Actions
 
@@ -108,7 +120,7 @@ git push -u origin main
 | `API_HASH` | Telegram API Hash | `abcdef1234567890abcdef1234567890` |
 | `STRING_SESSION` | 通过 gen_session.py 生成的字符串 | `1AQAOMTQ5LjE1NC4x...` |
 | `TG_CHAT_ID` | 目标群组 ID（负数） | `-1001234567890` |
-| `WEBHOOK_URL` | 飞书/企业微信 Webhook 地址 | `https://open.feishu.cn/open-apis/bot/v2/hook/...` |
+| `WEBHOOK_URL` | 钉钉/飞书/企微 Webhook 地址 | `https://oapi.dingtalk.com/robot/send?access_token=...` |
 
 ### 3. 启用 GitHub Actions
 
@@ -191,13 +203,27 @@ python main.py
 
 ## 📝 消息格式示例
 
-转发到飞书/企业微信的消息格式：
+### 钉钉机器人
+
+```markdown
+### 🔔 TG 群组监控告警
+
+**发送者：** 张三
+
+**时间：** 2026-02-07 14:30:25
+
+**内容：**
+
+大家好，今天的会议改到下午3点。
+```
+
+### 飞书/企业微信
 
 ```
-🔔 TG 工业群组监控告警
+🔔 TG 群组监控告警
 
 【发送者】张三
-【时间】2026-02-06 14:30:25
+【时间】2026-02-07 14:30:25
 【内容】
 大家好，今天的会议改到下午3点。
 ```
@@ -234,8 +260,9 @@ python main.py
    - 如遇限流，脚本会自动处理
 
 4. **Webhook 限流**：
-   - 飞书：每个机器人每分钟最多 20 条消息
-   - 企业微信：每个机器人每分钟最多 20 条消息
+   - **钉钉**：每个机器人每分钟最多 20 条消息
+   - **飞书**：每个机器人每分钟最多 20 条消息
+   - **企业微信**：每个机器人每分钟最多 20 条消息
    - **已内置保护**：脚本自动以 3 秒/条的速度发送，严格遵守限制
 
 ### 故障排查
