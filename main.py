@@ -21,6 +21,7 @@ from typing import Optional
 import pytz
 import aiohttp
 from telethon import TelegramClient, events
+from telethon.sessions import StringSession
 from telethon.tl.types import Message
 
 
@@ -411,17 +412,17 @@ async def run_monitor():
     # 3. 读取上次处理的消息 ID
     last_message_id = read_last_message_id()
     
-    # 4. 创建 Telegram 客户端
+    # 4. 创建 Telegram 客户端（使用 StringSession）
     print("\n🚀 正在连接 Telegram...")
     client = TelegramClient(
-        'monitor_session',
+        StringSession(Config.STRING_SESSION),  # 直接传入 StringSession 对象
         Config.API_ID,
         Config.API_HASH
     )
     
     try:
-        # 使用 StringSession 连接
-        await client.start(string_session=Config.STRING_SESSION)
+        # 启动客户端（无需传入 string_session 参数）
+        await client.start()
         print("✅ Telegram 连接成功")
         
         # 获取当前用户信息
