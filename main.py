@@ -309,6 +309,9 @@ async def fetch_history_messages(client: TelegramClient, last_id: int) -> int:
     """
     print(f"\n🔍 开始获取历史消息（从 ID {last_id} 之后）...")
     
+    # 记录检查开始时间
+    check_start_time = datetime.now(Config.TIMEZONE)
+    
     try:
         all_messages = []
         offset_id = 0  # 用于分页
@@ -345,15 +348,23 @@ async def fetch_history_messages(client: TelegramClient, last_id: int) -> int:
             # 添加小延迟，避免触发 Telegram API 限流
             await asyncio.sleep(0.5)
         
-        if not all_messages:
-            print("✅ 没有新的历史消息")
-            return last_id
-        
         # 过滤掉 ID <= last_id 的消息
         new_messages = [msg for msg in all_messages if msg.id > last_id]
         
         if not new_messages:
             print("✅ 没有新的历史消息")
+            
+            # 发送"无新消息"提示
+            check_end_time = datetime.now(Config.TIMEZONE)
+            time_range = f"{check_start_time.strftime('%H:%M')} - {check_end_time.strftime('%H:%M')}"
+            
+            print(f"📤 发送无新消息提示（时间段: {time_range}）")
+            await send_to_webhook(
+                sender_name="GitHub Actions",
+                send_time=check_end_time.strftime('%Y-%m-%d %H:%M:%S'),
+                message_text=f"✅ 该时间段（{time_range}）内没有新消息"
+            )
+            
             return last_id
         
         # 按时间顺序处理（从旧到新）
