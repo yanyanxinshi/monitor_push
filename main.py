@@ -169,8 +169,8 @@ async def send_to_webhook(sender_name: str, send_time: str, message_text: str) -
         payload = {
             "msgtype": "markdown",
             "markdown": {
-                "title": "🔔 TG 群组监控告警",
-                "text": f"### 🔔 TG 群组监控告警\n\n"
+                "title": "🔔 舒芙蕾Push",
+                "text": f"### 🔔 舒芙蕾Push\n\n"
                         f"**发送者：** {sender_name}\n\n"
                         f"**时间：** {send_time}\n\n"
                         f"**内容：**\n\n{message_text}"
@@ -185,7 +185,7 @@ async def send_to_webhook(sender_name: str, send_time: str, message_text: str) -
             "content": {
                 "post": {
                     "zh_CN": {
-                        "title": "🔔 TG 群组监控告警",
+                        "title": "🔔 舒芙蕾Push",
                         "content": [
                             [
                                 {
@@ -217,7 +217,7 @@ async def send_to_webhook(sender_name: str, send_time: str, message_text: str) -
         payload = {
             "msgtype": "markdown",
             "markdown": {
-                "content": f"### 🔔 TG 群组监控告警\n"
+                "content": f"### 🔔 舒芙蕾Push\n"
                           f"**发送者：** {sender_name}\n"
                           f"**时间：** {send_time}\n"
                           f"**内容：**\n{message_text}"
