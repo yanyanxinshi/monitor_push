@@ -1,11 +1,14 @@
-# Telegram 客户端库（基于 MTProto 协议）
-telethon==1.36.0
+# Telegram 客户端
+telethon==1.34.0
 
-# 异步 HTTP 请求库（用于 Webhook 转发，避免阻塞事件循环）
+# 异步 HTTP 客户端
 aiohttp==3.9.1
 
-# 时区处理库
+# 时区支持
 pytz==2024.1
 
-# SOCKS 代理支持（用于 gen_session.py 在中国大陆生成 StringSession）
+# 环境变量管理
+python-dotenv==1.0.0
+
+# SOCKS 代理支持（可选，用于生成 Session）
 python-socks[asyncio]==2.4.3

@@ -30,6 +30,12 @@ wheels/
 # 环境变量文件（本地测试用）
 .env
 .env.local
+.env.*.local
+
+# 日志文件和目录
+*.log
+logs/
+*.log.*
 
 # IDE
 .vscode/
@@ -42,5 +48,3 @@ wheels/
 .DS_Store
 Thumbs.db
 
-# 日志文件
-*.log
